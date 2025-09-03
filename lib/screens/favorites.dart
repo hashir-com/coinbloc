@@ -45,7 +45,7 @@ class FavoritesScreen extends StatelessWidget {
                 child: Card(
                   elevation: 4,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(26),
                   ),
                   margin: const EdgeInsets.symmetric(vertical: 8),
                   child: ListTile(
@@ -80,7 +80,37 @@ class FavoritesScreen extends StatelessWidget {
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        context.read<CoinBloc>().add(ToggleFavorite(coin));
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text("Remove Favorite"),
+                              content: Text(
+                                "Are you sure you want to remove ${coin.name} from favorites?",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text("Cancel"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    context.read<CoinBloc>().add(
+                                      ToggleFavorite(coin),
+                                    );
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text(
+                                    "Delete",
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
                       },
                     ),
                   ),

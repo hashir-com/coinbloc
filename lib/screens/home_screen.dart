@@ -28,6 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
           if (state is CoinLoading) {
             return const Center(child: CoinShimmer());
           } else if (state is CoinLoaded) {
+            if (state.coins.isEmpty) {
+              return _buildEmptyState();
+            }
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<CoinBloc>().add(FetchCoins());
@@ -52,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 2,
+                      shadowColor: Colors.black26,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -63,7 +67,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               tag: coin.id,
                               child: CircleAvatar(
                                 backgroundImage: NetworkImage(coin.image),
-                                radius: 24,
+                                radius: 26,
+                                backgroundColor: Colors.grey.shade100,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -80,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 4),
                                   Text(
                                     coin.symbol.toUpperCase(),
                                     style: TextStyle(
@@ -102,29 +107,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(width: 12),
-
-                            // Favorite Button
-                            Column(
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    coin.isFavorite
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
-                                    color: coin.isFavorite
-                                        ? Colors.redAccent
-                                        : Colors.grey,
-                                  ),
-                                  onPressed: () {
-                                    context.read<CoinBloc>().add(
-                                      ToggleFavorite(coin),
-                                    );
-                                  },
                                 ),
                                 const SizedBox(height: 6),
                                 Container(
@@ -151,6 +133,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ],
                             ),
+
+                            const SizedBox(width: 12),
+
+                            // Favorite Button
+                            IconButton(
+                              icon: Icon(
+                                coin.isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: coin.isFavorite
+                                    ? Colors.redAccent
+                                    : Colors.grey,
+                              ),
+                              onPressed: () {
+                                context.read<CoinBloc>().add(
+                                  ToggleFavorite(coin),
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -160,14 +161,76 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           } else if (state is CoinError) {
-            return Center(child: Text("Error: ${state.message}"));
+            return _buildErrorState(state.message);
           }
           return const Center(child: Text("No data"));
         },
       ),
 
+      // Favorites Page
       const FavoritesScreen(),
     ];
+  }
+
+  /// Empty state when no coins are found
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.search_off, size: 80, color: Colors.grey),
+          const SizedBox(height: 16),
+          const Text(
+            "No coins available",
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton.icon(
+            onPressed: () => context.read<CoinBloc>().add(FetchCoins()),
+            icon: const Icon(Icons.refresh),
+            label: const Text("Retry"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Error state with retry button
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.wifi_off, size: 80, color: Colors.grey),
+          const SizedBox(height: 16),
+          Text(
+            "Oops! $message",
+            style: const TextStyle(fontSize: 18, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton.icon(
+            onPressed: () => context.read<CoinBloc>().add(FetchCoins()),
+            icon: const Icon(Icons.refresh),
+            label: const Text("Retry"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -183,7 +246,10 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-      body: _pages[_selectedIndex],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: _pages[_selectedIndex],
+      ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
               backgroundColor: Colors.blueAccent,
