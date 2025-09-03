@@ -2,9 +2,9 @@ import 'package:coinbloc/blocs/coin_bloc.dart';
 import 'package:coinbloc/blocs/coin_event.dart';
 import 'package:coinbloc/blocs/coin_state.dart';
 import 'package:coinbloc/screens/coin_detail_screen.dart';
+import 'package:coinbloc/shimmer/fav_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shimmer/shimmer.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -14,24 +14,7 @@ class FavoritesScreen extends StatelessWidget {
     return BlocBuilder<CoinBloc, CoinState>(
       builder: (context, state) {
         if (state is CoinLoading || state is CoinInitial) {
-          // 🔹 Shimmer loader instead of circular loader
-          return ListView.builder(
-            itemCount: 6,
-            itemBuilder: (_, __) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Shimmer.fromColors(
-                baseColor: Colors.grey.shade300,
-                highlightColor: Colors.grey.shade100,
-                child: Container(
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-            ),
-          );
+          return FavShimmer();
         }
 
         if (state is CoinLoaded) {
