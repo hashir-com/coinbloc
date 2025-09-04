@@ -163,13 +163,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                           const SizedBox(width: 12),
-                          BlocBuilder<FavoritesBloc, FavoritesState>(
-                            builder: (_, favState) {
-                              final isFav =
-                                  favState is FavoritesLoaded &&
-                                  favState.favorites.any(
-                                    (c) => c.id == coin.id,
-                                  );
+                          BlocSelector<FavoritesBloc, FavoritesState, bool>(
+                            selector: (state) {
+                              if (state is FavoritesLoaded) {
+                                return state.favorites.any(
+                                  (c) => c.id == coin.id,
+                                );
+                              }
+                              return false;
+                            },
+                            builder: (context, isFav) {
                               return IconButton(
                                 icon: Icon(
                                   isFav
@@ -177,9 +180,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       : Icons.favorite_border,
                                   color: isFav ? Colors.redAccent : Colors.grey,
                                 ),
-                                onPressed: () => context
-                                    .read<FavoritesBloc>()
-                                    .add(ToggleFavorite(coin)),
+                                onPressed: () {
+                                  context.read<FavoritesBloc>().add(
+                                    ToggleFavorite(coin),
+                                  );
+                                },
                               );
                             },
                           ),

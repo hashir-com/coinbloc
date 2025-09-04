@@ -1,6 +1,5 @@
-import 'package:coinbloc/models/coin_model.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:coinbloc/repositories/favorites_repo.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'favorites_event.dart';
 import 'favorites_state.dart';
 
@@ -9,15 +8,11 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
 
   FavoritesBloc(this.favRepo) : super(FavoritesInitial()) {
     on<FetchFavorites>(_onFetchFavorites);
-    on<AddFavorite>(_onAddFavorite);
-    on<RemoveFavorite>(_onRemoveFavorite);
     on<ToggleFavorite>(_onToggleFavorite);
   }
 
   Future<void> _onFetchFavorites(
-    FetchFavorites event,
-    Emitter<FavoritesState> emit,
-  ) async {
+      FetchFavorites event, Emitter<FavoritesState> emit) async {
     emit(FavoritesLoading());
     try {
       final favorites = await favRepo.fetchFavorites();
@@ -27,65 +22,30 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
     }
   }
 
-  Future<void> _onAddFavorite(
-    AddFavorite event,
-    Emitter<FavoritesState> emit,
-  ) async {
-    try {
-      await favRepo.addFavorite(event.coin);
-      add(FetchFavorites()); // refresh list
-    } catch (e) {
-      emit(FavoritesError(e.toString()));
-    }
-  }
-
-  Future<void> _onRemoveFavorite(
-    RemoveFavorite event,
-    Emitter<FavoritesState> emit,
-  ) async {
-    try {
-      await favRepo.removeFavorite(event.coinId);
-      add(FetchFavorites()); // refresh list
-    } catch (e) {
-      emit(FavoritesError(e.toString()));
-    }
-  }
-
   Future<void> _onToggleFavorite(
-    ToggleFavorite event,
-    Emitter<FavoritesState> emit,
-  ) async {
+      ToggleFavorite event, Emitter<FavoritesState> emit) async {
     try {
       final currentState = state;
-
       if (currentState is FavoritesLoaded) {
-        final isAlreadyFavorite = currentState.favorites.any(
-          (c) => c.id == event.coin.id,
-        );
+        final isFav = currentState.favorites.any((c) => c.id == event.coin.id);
 
-        // Optimistic UI update
-        final updatedList =
-            isAlreadyFavorite
-                  ? currentState.favorites
-                        .where((c) => c.id != event.coin.id)
-                        .toList()
-                        .cast<Coin>() // 👈 Cast to List<Coin>
-                  : List<Coin>.from(currentState.favorites)
-              ..add(
-                event.coin.copyWith(isFavorite: true),
-              ); // 👈 Ensure correct type
+        // Optimistic update: update state immediately
+        final updatedList = isFav
+            ? currentState.favorites.where((c) => c.id != event.coin.id).toList()
+            : [...currentState.favorites, event.coin.copyWith(isFavorite: true)];
 
         emit(FavoritesLoaded(updatedList));
 
-        // API Call
-        if (isAlreadyFavorite) {
-          await favRepo.removeFavorite(event.coin.id);
+        // API call in background
+        if (isFav) {
+          favRepo.removeFavorite(event.coin.id).catchError((_) {
+            // Optional: handle API failure
+          });
         } else {
-          await favRepo.addFavorite(event.coin.copyWith(isFavorite: true));
+          favRepo.addFavorite(event.coin.copyWith(isFavorite: true)).catchError((_) {
+            // Optional: handle API failure
+          });
         }
-
-        // Refresh from server to sync
-        add(FetchFavorites());
       }
     } catch (e) {
       emit(FavoritesError(e.toString()));

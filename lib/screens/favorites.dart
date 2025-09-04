@@ -22,8 +22,10 @@ class FavoritesScreen extends StatelessWidget {
 
           if (favorites.isEmpty) {
             return const Center(
-              child: Text("No favorites yet",
-                  style: TextStyle(fontSize: 16, color: Colors.grey)),
+              child: Text(
+                "No favorites yet",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
             );
           }
 
@@ -35,28 +37,41 @@ class FavoritesScreen extends StatelessWidget {
               return Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 margin: const EdgeInsets.symmetric(vertical: 8),
                 child: ListTile(
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => CoinDetailScreen(coin: coin, tag: coin.id),
+                      builder: (_) =>
+                          CoinDetailScreen(coin: coin, tag: coin.id),
                     ),
                   ),
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(coin.image,
-                        width: 45, height: 45, fit: BoxFit.cover),
+                    child: Image.network(
+                      coin.image,
+                      width: 45,
+                      height: 45,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  title: Text("${coin.name} (${coin.symbol.toUpperCase()})",
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
-                  subtitle: Text("\$${coin.price.toStringAsFixed(2)}",
-                      style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.green.shade600,
-                          fontWeight: FontWeight.w500)),
+                  title: Text(
+                    "${coin.name} (${coin.symbol.toUpperCase()})",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    "\$${coin.price.toStringAsFixed(2)}",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.green.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () => _showDeleteDialog(context, coin),
@@ -69,8 +84,10 @@ class FavoritesScreen extends StatelessWidget {
 
         if (state is FavoritesError) {
           return Center(
-            child: Text("Error: ${state.message}",
-                style: const TextStyle(color: Colors.red, fontSize: 16)),
+            child: Text(
+              "Error: ${state.message}",
+              style: const TextStyle(color: Colors.red, fontSize: 16),
+            ),
           );
         }
 
@@ -84,7 +101,9 @@ class FavoritesScreen extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Remove Favorite"),
-        content: Text("Are you sure you want to remove ${coin.name} from favorites?"),
+        content: Text(
+          "Are you sure you want to remove ${coin.name} from favorites?",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -92,10 +111,11 @@ class FavoritesScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
+              // Optimistic removal
               context.read<FavoritesBloc>().add(ToggleFavorite(coin));
               Navigator.pop(context);
             },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+            child: Text("Delete", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

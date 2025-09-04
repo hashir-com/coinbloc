@@ -2,6 +2,7 @@ import 'package:coinbloc/blocs/coin/coin_bloc.dart';
 import 'package:coinbloc/blocs/coin/coin_state.dart';
 import 'package:coinbloc/blocs/favorite/favorites_bloc.dart';
 import 'package:coinbloc/blocs/favorite/favorites_event.dart';
+import 'package:coinbloc/blocs/favorite/favorites_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../models/coin_model.dart';
@@ -83,22 +84,31 @@ class CoinDetailScreen extends StatelessWidget {
                         ),
                       ),
 
-                      IconButton(
-                        icon: Icon(
-                          updatedCoin.isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: updatedCoin.isFavorite
-                              ? Colors.red
-                              : Colors.grey,
-                          size: 30,
-                        ),
-                        onPressed: () {
-                          context.read<FavoritesBloc>().add(
-                            ToggleFavorite(updatedCoin),
+                      BlocSelector<FavoritesBloc, FavoritesState, bool>(
+                        selector: (state) {
+                          if (state is FavoritesLoaded) {
+                            return state.favorites.any(
+                              (c) => c.id == updatedCoin.id,
+                            );
+                          }
+                          return false;
+                        },
+                        builder: (context, isFav) {
+                          return IconButton(
+                            icon: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              color: isFav ? Colors.red : Colors.grey,
+                              size: 30,
+                            ),
+                            onPressed: () {
+                              context.read<FavoritesBloc>().add(
+                                ToggleFavorite(updatedCoin),
+                              );
+                            },
                           );
                         },
                       ),
+
                       const SizedBox(height: 30),
 
                       // 💰 Price Section
