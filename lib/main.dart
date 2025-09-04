@@ -2,6 +2,7 @@ import 'package:coinbloc/blocs/coin/coin_bloc.dart';
 import 'package:coinbloc/blocs/coin/coin_event.dart';
 import 'package:coinbloc/blocs/favorite/favorites_bloc.dart';
 import 'package:coinbloc/blocs/favorite/favorites_event.dart';
+import 'package:coinbloc/blocs/navigation/navigation_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'repositories/coin_repo.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
           BlocProvider(
             create: (_) => FavoritesBloc(favoritesRepo)..add(FetchFavorites()),
           ),
+          BlocProvider(create: (_) => BottomNavBloc()),
         ],
         child: const MaterialApp(
           debugShowCheckedModeBanner: false,

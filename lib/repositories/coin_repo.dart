@@ -19,6 +19,8 @@ class CoinRepo {
       if (res.statusCode == 200) {
         final List data = json.decode(res.body);
         return data.map((e) => Coin.fromJson(e)).toList();
+      } else if (res.statusCode == 429) {
+        throw Exception("Too many requests. Please wait and try again later.");
       } else {
         throw HttpException(
           "Failed to fetch coins. Status code: ${res.statusCode}",

@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/coin/coin_bloc.dart';
-import '../blocs/coin/coin_event.dart';
 import '../blocs/coin/coin_state.dart';
+import '../blocs/coin/coin_event.dart';
 import '../blocs/favorite/favorites_bloc.dart';
-import '../blocs/favorite/favorites_event.dart';
 import '../blocs/favorite/favorites_state.dart';
+import '../blocs/favorite/favorites_event.dart';
+import '../blocs/navigation/navigation_bloc.dart';
+import '../blocs/navigation/navigation_state.dart';
+import '../blocs/navigation/navigation_event.dart';
+import '../models/coin_model.dart';
 import 'coin_detail_screen.dart';
 import 'favorites.dart';
 import '../shimmer/shimmer.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -32,40 +29,66 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-      body: _selectedIndex == 0 ? _buildHome() : const FavoritesScreen(),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-              backgroundColor: Colors.blueAccent,
-              child: const Icon(Icons.refresh, color: Colors.white),
-              onPressed: () => context.read<CoinBloc>().add(FetchCoins()),
-            )
-          : null,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: "Favorites",
-          ),
-        ],
+      body: BlocBuilder<BottomNavBloc, BottomNavState>(
+        builder: (context, state) {
+          final index = (state is BottomNavUpdated) ? state.index : 0;
+          return index == 0 ? _buildHome(context) : const FavoritesScreen();
+        },
+      ),
+      floatingActionButton: BlocBuilder<BottomNavBloc, BottomNavState>(
+        builder: (context, state) {
+          final index = (state is BottomNavUpdated) ? state.index : 0;
+          return index == 0
+              ? FloatingActionButton(
+                  backgroundColor: Colors.blueAccent,
+                  child: const Icon(Icons.refresh, color: Colors.white),
+                  onPressed: () => context.read<CoinBloc>().add(FetchCoins()),
+                )
+              : SizedBox.shrink();
+        },
+      ),
+      bottomNavigationBar: BlocBuilder<BottomNavBloc, BottomNavState>(
+        builder: (context, state) {
+          final index = (state is BottomNavUpdated) ? state.index : 0;
+          return BottomNavigationBar(
+            currentIndex: index,
+            selectedItemColor: Colors.blueAccent,
+            unselectedItemColor: Colors.grey,
+            onTap: (i) => context.read<BottomNavBloc>().add(ChangeTab(i)),
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_max),
+                label: "Home",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.favorite),
+                label: "Favorites",
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildHome() {
+  Widget _buildHome(BuildContext context) {
     return BlocBuilder<CoinBloc, CoinState>(
       builder: (context, state) {
         if (state is CoinLoading) return const Center(child: CoinShimmer());
         if (state is CoinError) {
-          return _buildMessage("Oops! ${state.message}", Icons.wifi_off);
+          return _buildMessage(
+            context,
+            "Oops! ${state.message}",
+            Icons.wifi_off,
+          );
         }
         if (state is CoinLoaded) {
           if (state.coins.isEmpty) {
-            return _buildMessage("No coins available", Icons.search_off);
+            return _buildMessage(
+              context,
+              "No coins available",
+              Icons.search_off,
+            );
           }
 
           return RefreshIndicator(
@@ -202,31 +225,32 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMessage(String text, IconData icon) => Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: 80, color: Colors.grey),
-        const SizedBox(height: 16),
-        Text(
-          text,
-          style: const TextStyle(fontSize: 18, color: Colors.grey),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        ElevatedButton.icon(
-          onPressed: () => context.read<CoinBloc>().add(FetchCoins()),
-          icon: const Icon(Icons.refresh),
-          label: const Text("Retry"),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blueAccent,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+  Widget _buildMessage(BuildContext context, String text, IconData icon) =>
+      Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 80, color: Colors.grey),
+            const SizedBox(height: 16),
+            Text(
+              text,
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
+              textAlign: TextAlign.center,
             ),
-          ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () => context.read<CoinBloc>().add(FetchCoins()),
+              icon: const Icon(Icons.refresh),
+              label: const Text("Retry"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }
