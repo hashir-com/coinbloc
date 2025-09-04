@@ -1,6 +1,7 @@
-import 'package:coinbloc/blocs/coin_bloc.dart';
-import 'package:coinbloc/blocs/coin_event.dart';
-import 'package:coinbloc/blocs/coin_state.dart';
+import 'package:coinbloc/blocs/coin/coin_bloc.dart';
+import 'package:coinbloc/blocs/coin/coin_state.dart';
+import 'package:coinbloc/blocs/favorite/favorites_bloc.dart';
+import 'package:coinbloc/blocs/favorite/favorites_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../models/coin_model.dart';
@@ -93,7 +94,7 @@ class CoinDetailScreen extends StatelessWidget {
                           size: 30,
                         ),
                         onPressed: () {
-                          context.read<CoinBloc>().add(
+                          context.read<FavoritesBloc>().add(
                             ToggleFavorite(updatedCoin),
                           );
                         },
@@ -107,7 +108,7 @@ class CoinDetailScreen extends StatelessWidget {
                           horizontal: 24,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.blueAccent.withOpacity(0.1),
+                          color: Colors.blueAccent,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Column(
